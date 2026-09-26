@@ -25,7 +25,7 @@ export function formatNoteContent(
               let hostname = part;
               try {
                 hostname = new URL(part).hostname.replace(/^www\./, "");
-              } catch (_) {}
+              } catch {}
 
               return (
                 <a

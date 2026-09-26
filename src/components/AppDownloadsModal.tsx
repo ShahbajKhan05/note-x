@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X, Smartphone, Monitor, DownloadCloud, Check } from "lucide-react";
+import { X, Smartphone, Monitor, DownloadCloud } from "lucide-react";
 
 interface AppDownloadsModalProps {
   isOpen: boolean;

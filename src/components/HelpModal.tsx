@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X, Lightbulb, Pin, Archive, Trash2, Search, Keyboard } from "lucide-react";
+import { X, Lightbulb, Pin, Archive, Search, Keyboard } from "lucide-react";
 
 interface HelpModalProps {
   isOpen: boolean;
@@ -84,7 +84,7 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
                 Pinning Notes
               </h3>
               <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed">
-                Pin important notes to keep them anchored at the top under the <strong>PINNED</strong> section. All other notes will appear under <strong>OTHERS</strong>.
+                Pin important notes to keep them anchored at the top under the <strong>PINNED</strong> section. All other notes will appear under <strong>NOTES</strong>.
               </p>
             </div>
           </div>

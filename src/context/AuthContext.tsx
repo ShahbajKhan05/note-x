@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       deleteSessionCookie();
       try {
         localStorage.removeItem(USER_STORAGE_KEY);
-      } catch (_) {}
+      } catch {}
 
       setUser(null);
       setIsAuthenticated(false);
@@ -182,7 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const updated = { ...prev, ...updates };
       try {
         localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updated));
-      } catch (_) {}
+      } catch {}
       return updated;
     });
   };

@@ -75,12 +75,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.add("dark");
       try {
         localStorage.setItem("note-x-theme", "dark");
-      } catch (_) {}
+      } catch {}
     } else {
       document.documentElement.classList.remove("dark");
       try {
         localStorage.setItem("note-x-theme", "light");
-      } catch (_) {}
+      } catch {}
     }
   }, [settings.darkTheme, isLoaded]);
 

@@ -1,5 +1,8 @@
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { SidebarProvider } from "@/context/SidebarContext";
+import { NotesProvider } from "@/context/NotesContext";
+import { SettingsProvider } from "@/context/SettingsContext";
 
 export const metadata = {
   title: "Note-X",
@@ -23,14 +26,20 @@ export default function RootLayout({
                 } else {
                   document.documentElement.classList.remove('dark');
                 }
-              } catch (_) {}
+              } catch {}
             `,
           }}
         />
       </head>
       <body className="bg-white dark:bg-[#202124] text-[#202124] dark:text-[#e8eaed] transition-colors duration-300 ease-in-out min-w-0">
         <AuthProvider>
-          {children}
+          <SidebarProvider>
+            <NotesProvider>
+              <SettingsProvider>
+                {children}
+              </SettingsProvider>
+            </NotesProvider>
+          </SidebarProvider>
         </AuthProvider>
       </body>
     </html>

@@ -16,13 +16,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   // Staged local state so changes aren't applied until "Save" is clicked
   const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
+  const [prevSettings, setPrevSettings] = useState(settings);
 
-  // Sync staged state whenever modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setLocalSettings(settings);
-    }
-  }, [isOpen, settings]);
+  // Sync staged state when settings change
+  if (settings !== prevSettings) {
+    setPrevSettings(settings);
+    setLocalSettings(settings);
+  }
 
   // Escape key handler
   useEffect(() => {

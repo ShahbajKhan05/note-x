@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   CheckSquare,
@@ -57,7 +57,9 @@ function DashboardContent() {
 
   const {
     notes,
+    isLoaded,
     searchQuery,
+    setSearchQuery,
     addNote,
     updateNote,
     deleteNote,
@@ -114,7 +116,7 @@ function DashboardContent() {
   };
 
   // Save New Note
-  const handleSaveNote = () => {
+  const handleSaveNote = useCallback(() => {
     if (newTitle.trim() === '' && newContent.trim() === '' && !newImageUrl) {
       setIsExpanded(false);
       return;
@@ -141,10 +143,10 @@ function DashboardContent() {
     setShowImageInput(false);
     setImageInputVal('');
     setIsExpanded(false);
-  };
+  }, [newTitle, newContent, newImageUrl, selectedColor, isPinned, addNote, settings.addNewItemsToBottom]);
 
   // Update existing note from modal
-  const handleUpdateNote = () => {
+  const handleUpdateNote = useCallback(() => {
     if (!editingNote) return;
     updateNote(editingNote.id, {
       title: editingNote.title,
@@ -156,7 +158,7 @@ function DashboardContent() {
     setEditingNote(null);
     setShowEditImageInput(false);
     setEditImageInput('');
-  };
+  }, [editingNote, updateNote]);
 
   // Centralized Keyboard Shortcuts Handler
   useEffect(() => {
@@ -304,6 +306,8 @@ function DashboardContent() {
     togglePin,
     toggleSelectNote,
     clearSelectedNotes,
+    handleSaveNote,
+    handleUpdateNote,
   ]);
 
   // 1. Search Filtering
@@ -387,6 +391,15 @@ function DashboardContent() {
       ))}
     </div>
   );
+
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[45vh] text-center select-none py-16">
+        <div className="w-9 h-9 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Loading your notes...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center mt-1 sm:mt-2 w-full min-w-0 relative">
@@ -633,7 +646,7 @@ function DashboardContent() {
                     viewMode === 'grid' ? 'max-w-[1600px]' : 'max-w-[600px] mx-auto'
                   }`}
                 >
-                  OTHERS
+                  NOTES
                 </div>
               )}
               {renderNoteList(otherNotes)}
@@ -642,13 +655,38 @@ function DashboardContent() {
 
           {/* Empty State */}
           {pinnedNotes.length === 0 && otherNotes.length === 0 && (
-            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center select-none">
-              <div className="w-28 h-28 rounded-full bg-[#f1f3f4] dark:bg-[#525355]/30 flex items-center justify-center mb-6 text-[#5f6368] dark:text-[#9aa0a6]">
-                <Lightbulb size={56} strokeWidth={1.5} />
+            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center select-none py-12 px-4 max-w-md mx-auto">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#f1f3f4] dark:bg-[#303134] flex items-center justify-center mb-5 text-[#5f6368] dark:text-[#9aa0a6] shadow-sm">
+                <Lightbulb size={52} strokeWidth={1.5} />
               </div>
-              <p className="text-xl font-medium text-[#5f6368] dark:text-[#9aa0a6]">
-                {searchQuery ? 'No matching notes found' : 'Notes you add appear here'}
+              <h3 className="text-xl sm:text-2xl font-medium text-gray-800 dark:text-gray-100 mb-2">
+                {searchQuery ? 'No matching notes found' : 'Your notes will appear here'}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mb-6 leading-relaxed">
+                {searchQuery
+                  ? `No notes match "${searchQuery}". Try a different keyword.`
+                  : 'Capture ideas, tasks, links, and reminders in one place.'}
               </p>
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="px-5 py-2.5 rounded-full text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-700 dark:text-gray-200 transition-colors focus:outline-none"
+                >
+                  Clear search
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExpanded(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-6 py-2.5 rounded-full text-sm font-medium bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-sm transition-all focus:outline-none"
+                >
+                  Take a note
+                </button>
+              )}
             </div>
           )}
         </>
@@ -658,20 +696,27 @@ function DashboardContent() {
           {displayedNotes.length > 0 ? (
             renderNoteList(displayedNotes)
           ) : (
-            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center select-none">
-              <div className="w-28 h-28 rounded-full bg-[#f1f3f4] dark:bg-[#525355]/30 flex items-center justify-center mb-6 text-[#5f6368] dark:text-[#9aa0a6]">
-                {currentView === 'archive' && <Archive size={56} strokeWidth={1.5} />}
-                {currentView === 'trash' && <Trash2 size={56} strokeWidth={1.5} />}
-                {currentView === 'reminders' && <Bell size={56} strokeWidth={1.5} />}
-                {currentView === 'loan' && <Tag size={56} strokeWidth={1.5} />}
-                {currentView === 'labels' && <Pencil size={56} strokeWidth={1.5} />}
+            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center select-none py-12 px-4 max-w-md mx-auto">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#f1f3f4] dark:bg-[#303134] flex items-center justify-center mb-5 text-[#5f6368] dark:text-[#9aa0a6] shadow-sm">
+                {currentView === 'archive' && <Archive size={52} strokeWidth={1.5} />}
+                {currentView === 'trash' && <Trash2 size={52} strokeWidth={1.5} />}
+                {currentView === 'reminders' && <Bell size={52} strokeWidth={1.5} />}
+                {currentView === 'loan' && <Tag size={52} strokeWidth={1.5} />}
+                {currentView === 'labels' && <Pencil size={52} strokeWidth={1.5} />}
               </div>
-              <p className="text-xl font-medium text-[#5f6368] dark:text-[#9aa0a6]">
+              <h3 className="text-xl font-medium text-gray-800 dark:text-gray-100 mb-1">
                 {currentView === 'archive' && 'Your archived notes appear here'}
                 {currentView === 'trash' && 'No notes in Trash'}
                 {currentView === 'reminders' && 'Notes with upcoming reminders appear here'}
                 {currentView === 'loan' && 'Notes with the "Loan" label appear here'}
                 {currentView === 'labels' && 'No labeled notes found'}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mt-1">
+                {currentView === 'archive' && 'Archive notes you want to save without cluttering your main view.'}
+                {currentView === 'trash' && 'Items moved to trash will be listed here.'}
+                {currentView === 'reminders' && 'Add time reminders to notes to keep track of deadlines.'}
+                {currentView === 'loan' && 'Tag notes with the "Loan" label to organize them together.'}
+                {currentView === 'labels' && 'Organize your notes with custom labels.'}
               </p>
             </div>
           )}

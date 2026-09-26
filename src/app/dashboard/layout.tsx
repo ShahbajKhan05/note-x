@@ -2,9 +2,7 @@
 
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
-import { NotesProvider } from "@/context/NotesContext";
-import { SettingsProvider } from "@/context/SettingsContext";
+import { useSidebar } from "@/context/SidebarContext";
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const sidebar = useSidebar();
@@ -37,13 +35,5 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <SidebarProvider>
-      <NotesProvider>
-        <SettingsProvider>
-          <DashboardLayoutContent>{children}</DashboardLayoutContent>
-        </SettingsProvider>
-      </NotesProvider>
-    </SidebarProvider>
-  );
+  return <DashboardLayoutContent>{children}</DashboardLayoutContent>;
 }

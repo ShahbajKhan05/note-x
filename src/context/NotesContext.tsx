@@ -39,6 +39,7 @@ interface NotesContextType {
   toggleArchive: (id: string) => void;
   toggleReminder: (id: string) => void;
   updateColor: (id: string, color: string) => void;
+  isLoaded: boolean;
 }
 
 const STORAGE_KEY = "note-x-notes";
@@ -53,31 +54,31 @@ const INITIAL_NOTES: Note[] = [
     pinned: true,
     archived: false,
     trashed: false,
-    createdAt: Date.now() - 3600000 * 24,
-    updatedAt: Date.now() - 3600000 * 24,
+    createdAt: 1710000000000,
+    updatedAt: 1710000000000,
     labels: ["Work"],
   },
   {
     id: "seed-2",
-    title: "EPFO",
-    content: "UAN :\nPASS : Shahbaj@2002",
+    title: "EPFO Portal",
+    content: "USERNAME : demo-user\nPASSWORD : demo-password",
     bgColor: "bg-[#fff475]",
     pinned: false,
     archived: false,
     trashed: false,
-    createdAt: Date.now() - 3600000 * 12,
-    updatedAt: Date.now() - 3600000 * 12,
+    createdAt: 1710000000000,
+    updatedAt: 1710000000000,
   },
   {
     id: "seed-3",
-    title: "TECH MAHINDRA login Details",
-    content: "Flipkart LDAP\nLDAP ID : techmk@partner.flipkart.com",
+    title: "Partner Login Details",
+    content: "Portal: demo.partner.example.com\nUser ID: demo-partner@example.com",
     bgColor: "bg-[#aecbfa]",
     pinned: false,
     archived: false,
     trashed: false,
-    createdAt: Date.now() - 3600000 * 6,
-    updatedAt: Date.now() - 3600000 * 6,
+    createdAt: 1710000000000,
+    updatedAt: 1710000000000,
     labels: ["Work"],
   },
 ];
@@ -96,18 +97,47 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // 1. Initial Load from localStorage (runs once)
+  // 1. Initial Load from localStorage (runs once on mount in browser)
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setNotes(parsed);
+      if (stored !== null) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            // Validate & sanitize any stored demo credentials
+            const validNotes: Note[] = parsed
+              .filter((n): n is Note => Boolean(n && typeof n === "object" && typeof n.id === "string"))
+              .map((note) => {
+                let content = typeof note.content === "string" ? note.content : "";
+                if (content.includes("Shahbaj@2002")) {
+                  content = content.replace("PASS : Shahbaj@2002", "PASSWORD : demo-password");
+                }
+                if (content.includes("techmk@partner.flipkart.com")) {
+                  content = content.replace("techmk@partner.flipkart.com", "demo-partner@example.com");
+                }
+                return {
+                  ...note,
+                  content,
+                };
+              });
+            setNotes(validNotes);
+          } else {
+            setNotes(INITIAL_NOTES);
+          }
+        } catch {
+          setNotes(INITIAL_NOTES);
         }
+      } else {
+        // First-time user: seed with initial demo notes and immediately persist
+        setNotes(INITIAL_NOTES);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_NOTES));
+        } catch {}
       }
     } catch (e) {
       console.error("Failed to load notes from localStorage:", e);
+      setNotes(INITIAL_NOTES);
     } finally {
       setIsLoaded(true);
     }
@@ -277,6 +307,7 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
     <NotesContext.Provider
       value={{
         notes,
+        isLoaded,
         searchQuery,
         setSearchQuery,
         addNote,

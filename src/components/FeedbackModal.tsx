@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { X, CheckCircle, Loader2 } from "lucide-react";
 
 interface FeedbackModalProps {
@@ -16,25 +16,24 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setFeedback("");
-      setIsSubmitting(false);
-      setIsSuccess(false);
-    }
-  }, [isOpen]);
+  const handleClose = useCallback(() => {
+    setFeedback("");
+    setIsSubmitting(false);
+    setIsSuccess(false);
+    onClose();
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        handleClose();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -66,7 +65,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
       setIsSuccess(true);
       setTimeout(() => {
-        onClose();
+        handleClose();
       }, 1500);
     } catch (err) {
       console.error(err);
@@ -80,7 +79,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       aria-modal="true"
       aria-labelledby="feedback-dialog-title"
       className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-black/50 transition-opacity duration-200"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="w-full max-w-[500px] bg-white dark:bg-[#282a2d] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-gray-200 dark:border-[#5f6368]/40 transition-all duration-200"
@@ -101,7 +100,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           <button
             type="button"
             aria-label="Close feedback"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
           >
             <X size={20} />
@@ -158,7 +157,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50/70 dark:bg-white/5 border-t border-gray-100 dark:border-white/10 mt-auto">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isSubmitting}
                 className="px-5 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200/60 dark:hover:bg-white/10 rounded-lg transition-colors focus:outline-none"
               >
